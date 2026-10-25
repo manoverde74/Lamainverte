@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Manoverde</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0710;
+    --bg-soft:#171022;
+    --card:#1D1428;
+    --ink:#F5F0FF;
+    --ink-soft:#A99BC2;
+    --line:#33254A;
+    --pink:#FF2E9A;
+    --purple:#9B3CFF;
+    --cyan:#2FE0FF;
+    --lime:#5CFF7A;
+    --amber:#FFB020;
+    --radius:18px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  body{ padding-bottom:calc(14px + env(safe-area-inset-bottom) + var(--nav-h, 66px) + 20px); }
+  ::selection{ background:var(--pink); color:#0B0710; }
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; transition-duration:0.01ms !important; }
+  }
+  .hidden{ display:none !important; }
+
+  /* ---------- Header ---------- */
+  header{
+    padding:22px 20px 18px;
+    position:relative;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 10% -20%, rgba(155,60,255,0.45), transparent 55%),
+      radial-gradient(circle at 100% -10%, rgba(47,224,255,0.25), transparent 50%),
+      var(--bg);
+  }
+  .cart-fab{
+    position:absolute;
+    top:calc(18px + env(safe-area-inset-top));
+    right:18px;
+    width:42px; height:42px;
+    border-radius:50%;
+    background:var(--card);
+    border:1.5px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    z-index:2;
+  }
+  .cart-fab:active{ transform:scale(0.93); }
+  .cart-fab-icon{ font-size:19px; }
+  .cart-fab-badge{
+    position:absolute;
+    top:-4px; right:-4px;
+    min-width:18px; height:18px;
+    padding:0 4px;
+    border-radius:10px;
+    background:var(--pink);
+    color:#fff;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 0 8px rgba(255,46,154,0.6);
+  }
+  .cart-fab-badge.hidden{ display:none; }
+  .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--cyan);
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .eyebrow::before{
+    content:'';
+    width:6px; height:6px;
+    background:var(--pink);
+    border-radius:50%;
+    display:inline-block;
+    box-shadow:0 0 8px var(--pink);
+  }
+  h1.logo{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:42px;
+    line-height:1;
+    margin-top:8px;
+    color:var(--lime);
+    text-shadow:
+      0 0 14px rgba(92,255,122,0.55),
+      2px 3px 0 rgba(11,7,16,0.6);
+  }
+  .tagline{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:8px;
+    max-width:36ch;
+  }
+
+  /* ---------- Views ---------- */
+  .view{ padding-bottom:10px; }
+
+  /* ---------- Home: category banners ---------- */
+  .banners{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    padding:18px 20px 8px;
+  }
+  .banner{
+    position:relative;
+    border-radius:var(--radius);
+    overflow:hidden;
+    height:118px;
+    display:flex;
+    align-items:flex-end;
+    padding:14px 16px;
+    cursor:pointer;
+    border:1.5px solid rgba(255,255,255,0.06);
+  }
+  .banner:active{ transform:scale(0.98); }
+  .banner .glow{
+    position:absolute; inset:0;
+    opacity:0.9;
+  }
+  .banner .photo{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit:cover;
+    object-position:center;
+  }
+  .banner .shade{
+    position:absolute; inset:0;
+    background:linear-gradient(0deg, rgba(0,0,0,0.65), rgba(0,0,0,0.15) 55%, rgba(0,0,0,0.35));
+  }
+  .banner .icon{
+    position:absolute;
+    top:12px; right:14px;
+    font-size:30px;
+    opacity:0.5;
+    filter:drop-shadow(0 0 10px rgba(255,255,255,0.25));
+  }
+  .banner .label{
+    position:relative;
+    z-index:1;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:24px;
+    letter-spacing:0.01em;
+    text-shadow:2px 3px 0 rgba(0,0,0,0.35);
+  }
+  .banner .sub{
+    position:relative;
+    z-index:1;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,0.75);
+    margin-top:2px;
+  }
+
+  /* ---------- Category header bar ---------- */
+  .cat-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin:18px 20px 4px;
+    padding:12px 16px;
+    border-radius:14px;
+    background:linear-gradient(100deg, var(--card), rgba(255,255,255,0.02));
+    border:1.5px solid var(--line);
+  }
+  .cat-bar .back{
+    background:none; border:none;
+    color:var(--cyan);
+    font-size:18px;
+    cursor:pointer;
+  }
+  .cat-bar .cat-name{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:16px;
+  }
+
+  /* ---------- Product grid ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    padding:14px 20px 20px;
+  }
+  .card{
+    background:var(--card);
+    border:1.5px solid var(--line);
+    border-radius:var(--radius);
+    position:relative;
+    overflow:hidden;
+    cursor:pointer;
+    opacity:0;
+    transform:translateY(10px);
+    animation:rise 0.4s ease forwards;
+  }
+  @keyframes rise{ to{ opacity:1; transform:translateY(0);} }
+  .card:active{ transform:scale(0.97); }
+
+  .card-media{
+    width:100%;
+    aspect-ratio:1/0.9;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:36px;
+    position:relative;
+    overflow:hidden;
+  }
+  .card-media img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .cbd-badge{
+    position:absolute;
+    top:8px; left:8px;
+    background:rgba(11,7,16,0.75);
+    border-radius:20px;
+    padding:3px 8px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9.5px;
+    font-weight:600;
+    color:var(--lime);
+  }
+  .card-body{ padding:11px 12px 13px; }
+  .card-name{ font-size:13px; font-weight:700; line-height:1.25; margin-bottom:5px; }
+  .card-farm{ font-family:'IBM Plex Mono', monospace; font-size:9.5px; color:var(--ink-soft); margin-bottom:8px; }
+  .price-from{ font-family:'IBM Plex Mono', monospace; font-size:9px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em; display:block; }
+  .price{ font-family:'IBM Plex Mono', monospace; font-size:14px; font-weight:700; }
+
+  /* ---------- Static sections (Info / Links / Avis) ---------- */
+  .static-section{ padding:22px 20px 10px; }
+  .static-section h2{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:20px;
+    margin-bottom:10px;
+    color:var(--lime);
+  }
+  .static-section p{ font-size:13px; color:var(--ink-soft); line-height:1.6; margin-bottom:14px; }
+  .link-btn{
+    display:block;
+    padding:14px 16px;
+    border-radius:14px;
+    background:linear-gradient(100deg, var(--purple), var(--pink));
+    color:#fff;
+    font-weight:700;
+    font-size:13px;
+    text-decoration:none;
+    margin-bottom:10px;
+  }
+  .review{
+    padding:12px 14px;
+    border-radius:14px;
+    background:var(--card);
+    border:1.5px solid var(--line);
+    margin-bottom:10px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .review .stars{ color:var(--amber); font-size:13px; margin-bottom:4px; }
+
+  /* ---------- Bottom nav ---------- */
+  .bottomnav{
+    position:fixed;
+    left:14px; right:14px;
+    bottom:calc(14px + env(safe-area-inset-bottom));
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    background:var(--bg-soft);
+    border-radius:24px;
+    padding:8px;
+    border:1.5px solid var(--pink);
+    box-shadow:0 0 18px rgba(255,46,154,0.25);
+    z-index:15;
+  }
+  .navbtn{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    padding:8px 0;
+    border-radius:16px;
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9.5px;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    cursor:pointer;
+  }
+  .navbtn .ic{ font-size:17px; }
+  .navbtn.active{
+    background:rgba(255,46,154,0.14);
+    color:var(--pink);
+  }
+
+  /* ---------- Overlay + sheets ---------- */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(6,4,10,0.65);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.25s ease;
+    z-index:30;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .sheet{
+    position:fixed;
+    left:0; right:0; bottom:0;
+    max-height:86vh;
+    background:var(--bg-soft);
+    border-top:1.5px solid var(--line);
+    border-radius:22px 22px 0 0;
+    transform:translateY(100%);
+    transition:transform 0.32s cubic-bezier(.22,1,.36,1);
+    z-index:31;
+    display:flex;
+    flex-direction:column;
+  }
+  .sheet.show{ transform:translateY(0); }
+  .sheet-handle{ width:36px; height:4px; background:var(--line); border-radius:4px; margin:10px auto 6px; flex:0 0 auto; }
+  .sheet-scroll{ overflow-y:auto; }
+
+  #productMedia{
+    width:100%;
+    aspect-ratio:1/0.75;
+    display:flex; align-items:center; justify-content:center;
+    font-size:60px;
+  }
+  #productMedia img{ width:100%; height:100%; object-fit:cover; }
+  .product-info{ padding:16px 20px 4px; }
+  .product-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .product-head h2{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:19px; line-height:1.25; }
+  .close-x{ background:none; border:none; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; cursor:pointer; flex:0 0 auto; }
+  .product-farm{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--cyan); margin-top:6px; }
+  .product-desc{ font-size:13px; color:var(--ink-soft); line-height:1.5; margin-top:10px; }
+  .tiers-label{ font-family:'IBM Plex Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft); margin:18px 0 10px; padding:0 20px; }
+  .tiers-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 20px 20px; }
+  .tier-tile{
+    background:linear-gradient(150deg, #3A2A57, #5B2E7A 60%, #7C2AE8);
+    border-radius:14px;
+    padding:14px 10px;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+  }
+  .tier-tile .tier-label{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:15px; }
+  .tier-tile .tier-price{ font-family:'IBM Plex Mono', monospace; font-size:13px; color:#EFE0FF; }
+  .tier-tile button{ width:38px; height:38px; border-radius:12px; border:none; background:var(--lime); color:#0B0710; font-size:18px; font-weight:700; cursor:pointer; }
+  .tier-tile button:active{ transform:scale(0.92); }
+
+  .drawer-head{ padding:6px 20px 14px; border-bottom:1.5px solid var(--line); display:flex; align-items:baseline; justify-content:space-between; }
+  .drawer-head h2{ font-family:'Baloo 2', sans-serif; font-weight:700; font-size:20px; }
+  .drawer-list{ padding:6px 20px; }
+  .drawer-empty{ padding:40px 0; text-align:center; color:var(--ink-soft); font-size:13px; }
+  .line-item{ display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--line); gap:10px; }
+  .line-item .li-icon{ width:38px; height:38px; display:flex; align-items:center; justify-content:center; font-size:18px; background:var(--bg); border-radius:10px; flex:0 0 auto; overflow:hidden; }
+  .line-item .li-icon img{ width:100%; height:100%; object-fit:cover; }
+  .line-item .li-name{ font-size:13px; font-weight:600; flex:1; }
+  .line-item .li-name .li-tier{ color:var(--ink-soft); font-weight:500; }
+  .line-item .li-price{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--ink-soft); }
+  .li-remove{ background:none; border:none; color:var(--pink); font-size:16px; cursor:pointer; flex:0 0 auto; }
+  .drawer-foot{ padding:16px 20px calc(16px + env(safe-area-inset-bottom)); border-top:1.5px solid var(--line); }
+  .total-row{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; font-family:'IBM Plex Mono', monospace; }
+  .total-row .label{ font-size:12px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); }
+  .total-row .amount{ font-size:22px; font-weight:700; }
+  .checkout-btn{ width:100%; padding:15px 0; background:var(--lime); color:#0B0710; border:none; border-radius:26px; font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; cursor:pointer; }
+  .checkout-btn:disabled{ background:var(--line); color:var(--ink-soft); }
+  .fallback-note{ font-size:10px; color:var(--ink-soft); text-align:center; margin-top:10px; font-family:'IBM Plex Mono', monospace; }
+
+  /* ---------- Gate : ecran de selection du code postal ---------- */
+  .gate{
+    position:fixed; inset:0;
+    z-index:200;
+    background:
+      radial-gradient(circle at 15% -10%, rgba(155,60,255,0.35), transparent 55%),
+      radial-gradient(circle at 100% 0%, rgba(47,224,255,0.2), transparent 50%),
+      var(--bg);
+    overflow-y:auto;
+    padding:28px 20px calc(28px + env(safe-area-inset-bottom));
+  }
+  .gate.hidden{ display:none; }
+  .gate-inner{ max-width:420px; margin:0 auto; }
+  .gate-eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--cyan);
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .gate-eyebrow::before{
+    content:'';
+    width:6px; height:6px;
+    background:var(--pink);
+    border-radius:50%;
+    display:inline-block;
+    box-shadow:0 0 8px var(--pink);
+  }
+  .gate-title{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:32px;
+    margin-top:10px;
+    color:var(--lime);
+    text-shadow:0 0 14px rgba(92,255,122,0.5), 2px 3px 0 rgba(11,7,16,0.6);
+  }
+  .gate-sub{ font-size:13px; color:var(--ink-soft); margin-top:10px; line-height:1.55; max-width:38ch; }
+
+  .gate-map{
+    margin-top:26px;
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    grid-template-areas:
+      ".         allier     ain        ."
+      "puydedome rhone      isere      hautesavoie"
+      "cantal    loire      .          savoie"
+      ".         hauteloire ardeche    drome";
+    gap:8px;
+  }
+  .dept-blob{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    color:var(--ink);
+    background:linear-gradient(150deg, var(--card), rgba(255,255,255,0.03));
+    border:1.5px solid var(--line);
+    border-radius:14px;
+    padding:16px 4px;
+    text-align:center;
+    cursor:pointer;
+    transition:transform 0.15s ease, border-color 0.15s ease;
+  }
+  .dept-blob:active{ transform:scale(0.94); }
+  .dept-blob:hover{ border-color:var(--pink); }
+  .dept-01{ grid-area:ain; }
+  .dept-03{ grid-area:allier; }
+  .dept-07{ grid-area:ardeche; }
+  .dept-15{ grid-area:cantal; }
+  .dept-26{ grid-area:drome; }
+  .dept-38{ grid-area:isere; }
+  .dept-42{ grid-area:loire; }
+  .dept-43{ grid-area:hauteloire; }
+  .dept-63{ grid-area:puydedome; }
+  .dept-69{ grid-area:rhone; background:linear-gradient(150deg, #3A2A57, #5B2E7A 60%, #7C2AE8); border-color:var(--purple); }
+  .dept-73{ grid-area:savoie; }
+  .dept-74{ grid-area:hautesavoie; }
+
+  .gate-divider{
+    display:flex; align-items:center; gap:12px;
+    margin:22px 0 18px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--ink-soft);
+  }
+  .gate-divider::before, .gate-divider::after{ content:''; flex:1; height:1px; background:var(--line); }
+
+  .gate-form{ display:flex; gap:10px; }
+  .gate-form input{
+    flex:1;
+    background:var(--card);
+    border:1.5px solid var(--line);
+    border-radius:14px;
+    padding:14px 16px;
+    color:var(--ink);
+    font-size:15px;
+    font-family:'Work Sans', sans-serif;
+  }
+  .gate-form input:focus{ outline:none; border-color:var(--cyan); }
+  .gate-form button{
+    background:var(--lime);
+    color:#0B0710;
+    border:none;
+    border-radius:14px;
+    padding:0 20px;
+    font-family:'IBM Plex Mono', monospace;
+    font-weight:700;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    cursor:pointer;
+  }
+  .gate-error{
+    margin-top:14px;
+    font-size:12.5px;
+    color:var(--pink);
+    line-height:1.5;
+    display:none;
+  }
+  .gate-error.show{ display:block; }
+  .gate-error .gate-wa{ color:var(--cyan); font-weight:700; }
+
+  .gate-reset-btn{
+    margin-top:4px;
+    background:none;
+    border:1.5px solid var(--line);
+    color:var(--ink-soft);
+    border-radius:14px;
+    padding:11px 16px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- GATE : ecran de selection du code postal, affiche au tout debut -->
+<div class="gate" id="gateScreen">
+  <div class="gate-inner">
+    <div class="gate-eyebrow">Zone de livraison</div>
+    <h1 class="gate-title">Choisis ta ville</h1>
+    <p class="gate-sub">Pour le moment disponible en Auvergne-Rhone-Alpes. Selectionne ton departement sur la carte ou saisis directement ton code postal.</p>
+
+    <div class="gate-map" id="gateMap"></div>
+
+    <div class="gate-divider"><span>ou</span></div>
+
+    <div class="gate-form">
+      <input type="tel" inputmode="numeric" maxlength="5" placeholder="Ton code postal" id="gatePostalInput">
+      <button id="gateSubmitBtn">Valider</button>
+    </div>
+    <p class="gate-error" id="gateError"></p>
+  </div>
+</div>
+
+<header>
+  <button class="cart-fab" id="cartFab" aria-label="Voir le panier">
+    <span class="cart-fab-icon">&#128722;</span>
+    <span class="cart-fab-badge hidden" id="cartFabBadge">0</span>
+  </button>
+  <div class="eyebrow" id="eyebrowText"></div>
+  <h1 class="logo" id="shopNameText"></h1>
+  <p class="tagline" id="taglineText"></p>
+</header>
+
+<!-- HOME: category banners only -->
+<div class="view" id="viewHome">
+  <div class="banners" id="banners"></div>
+</div>
+
+<!-- CATEGORY: header bar + product grid -->
+<div class="view hidden" id="viewCategory">
+  <div class="cat-bar">
+    <button class="back" id="backBtn">&#8592;</button>
+    <span class="cat-name" id="catName"></span>
+    <span style="width:18px;"></span>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- INFO -->
+<div class="view hidden" id="viewInfo">
+  <div class="static-section">
+    <h2>Infos</h2>
+    <div id="infoContainer"></div>
+    <button class="gate-reset-btn" id="gateResetBtn">Changer de code postal</button>
+  </div>
+</div>
+
+<!-- LINKS -->
+<div class="view hidden" id="viewLinks">
+  <div class="static-section">
+    <h2>Liens</h2>
+    <div id="linksContainer"></div>
+  </div>
+</div>
+
+<!-- AVIS -->
+<div class="view hidden" id="viewAvis">
+  <div class="static-section">
+    <h2>Avis</h2>
+    <div id="reviewsContainer"></div>
+  </div>
+</div>
+
+<div class="bottomnav" id="bottomnav">
+  <button class="navbtn active" data-view="home"><span class="ic">&#127968;</span>Home</button>
+  <button class="navbtn" data-view="info"><span class="ic">&#8505;</span>Info</button>
+  <button class="navbtn" data-view="links"><span class="ic">&#128279;</span>Links</button>
+  <button class="navbtn" data-view="avis"><span class="ic">&#9733;</span>Avis</button>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="sheet" id="productSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-scroll">
+    <div id="productMedia"></div>
+    <div class="product-info">
+      <div class="product-head">
+        <h2 id="productName"></h2>
+        <button class="close-x" id="closeProduct">Fermer</button>
+      </div>
+      <div class="product-farm" id="productFarm"></div>
+      <p class="product-desc" id="productDesc"></p>
+    </div>
+    <div class="tiers-label">Choisis ta quantite</div>
+    <div class="tiers-grid" id="tiersGrid"></div>
+  </div>
+</div>
+
+<div class="sheet" id="drawer">
+  <div class="sheet-handle"></div>
+  <div class="drawer-head">
+    <h2>Panier</h2>
+    <button class="close-x" id="closeDrawer">Fermer</button>
+  </div>
+  <div class="drawer-list sheet-scroll" id="drawerList"></div>
+  <div class="drawer-foot">
+    <div class="total-row">
+      <span class="label">Total</span>
+      <span class="amount" id="drawerTotal">0,00 EUR</span>
+    </div>
+    <button class="checkout-btn" id="checkoutBtn" disabled>Ajoute un article</button>
+    <p class="fallback-note" id="fallbackNote" style="display:none;">La commande s'ouvrira dans WhatsApp, prete a envoyer.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var tg = window.Telegram ? window.Telegram.WebApp : null;
+  var inTelegram = !!(tg && tg.initData !== undefined && tg.platform !== 'unknown');
+  if (tg) { try { tg.ready(); tg.expand(); } catch(e){} }
+
+  var WHATSAPP_NUMBER = '';
+
+  // ======================================================================
+  //  BOUTIQUES — une entree par boutique. Chacune a :
+  //  - sa propre identite (nom, texte, numero WhatsApp, infos, liens, avis)
+  //  - ses propres categories et produits
+  //  - sa propre zone de livraison (departements et/ou villes precises)
+  //
+  //  C'EST ICI (ou via l'outil de gestion dedie) QUE TU GERES TES BOUTIQUES.
+  //  Ajoute une entree pour chaque nouvelle boutique.
+  // ======================================================================
+  //
+  //  zone.include : liste de codes.
+  //    - un code a 2 chiffres (ex '74') couvre TOUT le departement
+  //    - un code postal complet a 5 chiffres (ex '74940') couvre UNE ville precise
+  //  zone.exclude : codes postaux (5 chiffres) a retirer meme si le
+  //    departement est inclus — utile quand une autre boutique dessert
+  //    deja ces villes precises.
+  //  Regle de priorite : un code postal exact dans "include" gagne
+  //  toujours face a une simple inclusion de departement (meme d'une
+  //  autre boutique), donc pas besoin d'etre exhaustif sur les "exclude".
+  //
+  var BOUTIQUES = [
+    {
+      id: 'b1',
+      name: 'Manoverde',                  // nom interne, pour toi (pas affiche au client)
+
+      // ---- Identite (visible en haut de l'ecran) ----
+      eyebrow:  'Boutique CBD',
+      shopName: 'Manoverde',
+      tagline:  "Fleurs, huiles et extraits selectionnes. Taux de THC conforme a la reglementation (moins de 0,3%).",
+
+      // ---- Contact ----
+      // Numero WhatsApp au format international, SANS le "+" et sans espaces
+      // Exemple : 33612345678 pour un numero francais 06 12 34 56 78
+      whatsappNumber: '33751727841',
+
+      // ---- Page "Infos" : un paragraphe par ligne ----
+      infoParagraphs: [
+        "Manoverde selectionne des produits CBD conformes a la reglementation francaise (taux de THC inferieur a 0,3%). Commande via la boutique, reglement et retrait a convenir avec nous.",
+        "Modifie ce texte avec tes propres informations : horaires, zone de livraison, conditions."
+      ],
+
+      // ---- Page "Liens" : un bouton par ligne ----
+      // Pour le bouton WhatsApp, mets url: 'whatsapp' -> il utilisera automatiquement
+      // le numero renseigne juste au-dessus, pas besoin de le repeter.
+      links: [
+        { label: 'Canal Telegram',   url: '#' },
+        { label: 'Instagram',        url: '#' },
+        { label: 'Contact WhatsApp', url: 'whatsapp' }
+      ],
+
+      // ---- Page "Avis" : un avis par ligne (stars de 1 a 5) ----
+      reviews: [
+        { stars: 5, text: "Exemple d'avis client a remplacer par les vrais retours." },
+        { stars: 5, text: "Un autre exemple d'avis, modifiable directement dans le fichier." }
+      ],
+
+      // ---- Categories ----
+      cats: [
+        { id:'fleurs', label:'Fleurs CBD', sub:'Cultures selectionnees', icon:'\u{1F33F}', photo:'', glow:'linear-gradient(135deg, #123B1E, #1E5E31 55%, #5CFF7A)' },
+        { id:'huiles', label:'Huiles CBD', sub:'Full & broad spectrum', icon:'\u{1F4A7}', photo:'', glow:'linear-gradient(135deg, #3A2A05, #7A4E0C 55%, #FFB020)' },
+        { id:'resines', label:'Resines CBD', sub:'Extraction a froid', icon:'\u{1F7E4}', photo:'', glow:'linear-gradient(135deg, #2A0F3F, #5B2E7A 55%, #C24DFF)' },
+        { id:'infusions', label:'Infusions CBD', sub:'Boites de 20 sachets', icon:'\u{1F375}', photo:'', glow:'linear-gradient(135deg, #052A33, #0C5A6B 55%, #2FE0FF)' },
+        { id:'cosmetiques', label:'Cosmetiques CBD', sub:'Soins et baumes', icon:'\u{1F9F4}', photo:'', glow:'linear-gradient(135deg, #3A0A28, #7A1C57 55%, #FF2E9A)' },
+      ],
+
+      // ---- Produits ----
+      products: [
+        { id:'p1', cat:'fleurs', icon:'\u{1F33F}', image:'', name:'Lemon Haze CBD', farm:'Culture France', cbd:'12%',
+          desc:"Aromes d'agrumes marques, tetes denses et bien formees, sechage lent pour preserver les terpenes.",
+          tiers:[{label:'3g',price:15},{label:'5g',price:22},{label:'10g',price:38},{label:'20g',price:65}] },
+        { id:'p2', cat:'fleurs', icon:'\u{1F33F}', image:'', name:'Purple Kush CBD', farm:'Culture France', cbd:'9%',
+          desc:"Notes fruits rouges et sous-bois, coloris violaces typiques, texture collante.",
+          tiers:[{label:'3g',price:14},{label:'5g',price:20},{label:'10g',price:36},{label:'20g',price:60}] },
+        { id:'p3', cat:'huiles', icon:'\u{1F4A7}', image:'', name:'Huile CBD Full Spectrum', farm:'Extraction CO2', cbd:'10%',
+          desc:"Flacon avec compte-gouttes, extrait complet de la plante, gout vegetal.",
+          tiers:[{label:'10ml',price:34},{label:'20ml',price:58}] },
+        { id:'p4', cat:'huiles', icon:'\u{1F4A7}', image:'', name:'Huile CBD Broad Spectrum', farm:'Extraction CO2', cbd:'5%',
+          desc:"Sans THC detectable, base neutre en huile de chanvre.",
+          tiers:[{label:'10ml',price:29}] },
+        { id:'p5', cat:'resines', icon:'\u{1F7E4}', image:'', name:'Resine Ice-O-Lator', farm:'Extraction a froid', cbd:'20%',
+          desc:"Texture fondante, tamisage fin, conservation au frais recommandee.",
+          tiers:[{label:'2g',price:24},{label:'5g',price:55}] },
+        { id:'p6', cat:'infusions', icon:'\u{1F375}', image:'', name:'Infusion CBD Camomille', farm:'Boite de 20 sachets', cbd:'',
+          desc:"Melange camomille et chanvre, a infuser 5 minutes.",
+          tiers:[{label:'Boite',price:9.9}] },
+        { id:'p7', cat:'infusions', icon:'\u{1F375}', image:'', name:'Infusion CBD Menthe', farm:'Boite de 20 sachets', cbd:'',
+          desc:"Melange menthe poivree et chanvre, arome frais.",
+          tiers:[{label:'Boite',price:9.9}] },
+        { id:'p8', cat:'cosmetiques', icon:'\u{1F9F4}', image:'', name:'Baume CBD apaisant', farm:'Usage local', cbd:'2%',
+          desc:"Pot 50ml, texture riche, a base de beurre de karite.",
+          tiers:[{label:'50ml',price:19.9}] },
+      ],
+
+      // ---- Zone de livraison ----
+      zone: { include: ['74'], exclude: [] }
+    }
+  ];
+
+  // Couleur d'accent de chaque categorie, deduite automatiquement
+  // du degrade "glow" (derniere couleur du degrade). Rien a faire ici.
+  function extractAccentColor(glow){
+    var matches = glow.match(/#[0-9A-Fa-f]{3,6}/g);
+    return matches ? matches[matches.length - 1] : '#9B3CFF';
+  }
+
+  // ======================================================================
+  //  ZONES DE LIVRAISON — departements couverts (Auvergne-Rhone-Alpes)
+  //  Cette liste sert uniquement a afficher la mini-carte de selection.
+  // ======================================================================
+  var DEPARTMENTS = [
+    { code:'01', name:'Ain' },
+    { code:'03', name:'Allier' },
+    { code:'07', name:'Ardeche' },
+    { code:'15', name:'Cantal' },
+    { code:'26', name:'Drome' },
+    { code:'38', name:'Isere' },
+    { code:'42', name:'Loire' },
+    { code:'43', name:'Haute-Loire' },
+    { code:'63', name:'Puy-de-Dome' },
+    { code:'69', name:'Rhone' },
+    { code:'73', name:'Savoie' },
+    { code:'74', name:'Haute-Savoie' },
+  ];
+
+  var FALLBACK_WHATSAPP = BOUTIQUES.length ? BOUTIQUES[0].whatsappNumber : '';
+
+  // Trouve la boutique qui couvre un code postal donne.
+  // Un code postal exact dans "include" est toujours prioritaire sur
+  // une simple inclusion de departement (meme d'une autre boutique).
+  function resolveBoutique(postal){
+    var prefix = postal.slice(0, 2);
+    var best = null, bestScore = 0;
+    BOUTIQUES.forEach(function(b){
+      var zone = b.zone || {};
+      var include = zone.include || [];
+      var exclude = zone.exclude || [];
+      var score = 0;
+      include.forEach(function(code){
+        if (code === postal) score = Math.max(score, 2);
+        else if (code === prefix) score = Math.max(score, 1);
+      });
+      if (score === 1 && exclude.indexOf(postal) !== -1) score = 0;
+      if (score > bestScore) { bestScore = score; best = b; }
+    });
+    return best;
+  }
+
+  // Liste des boutiques qui desservent au moins une partie d'un departement
+  // (utilise pour la mini-carte : departement entier ou villes precises dedans).
+  function deptBoutiques(deptCode){
+    return BOUTIQUES.filter(function(b){
+      return (b.zone && b.zone.include || []).some(function(code){
+        return code === deptCode || code.slice(0, 2) === deptCode;
+      });
+    });
+  }
+
+  var cart = {};
+  var activeCat = null;
+  var activeBoutique = null;
+  var CATS = [];
+  var PRODUCTS = [];
+  var CAT_COLORS = {};
+
+  var gateEl = document.getElementById('gateScreen');
+  var gateMapEl = document.getElementById('gateMap');
+  var gateInput = document.getElementById('gatePostalInput');
+  var gateSubmitBtn = document.getElementById('gateSubmitBtn');
+  var gateError = document.getElementById('gateError');
+  var gateResetBtn = document.getElementById('gateResetBtn');
+
+  var viewHome = document.getElementById('viewHome');
+  var viewCategory = document.getElementById('viewCategory');
+  var viewInfo = document.getElementById('viewInfo');
+  var viewLinks = document.getElementById('viewLinks');
+  var viewAvis = document.getElementById('viewAvis');
+  var bannersEl = document.getElementById('banners');
+  var gridEl = document.getElementById('grid');
+  var catNameEl = document.getElementById('catName');
+  var backBtn = document.getElementById('backBtn');
+  var bottomnav = document.getElementById('bottomnav');
+
+  function syncNavHeight(){
+    var h = bottomnav.getBoundingClientRect().height;
+    if (h > 0) document.documentElement.style.setProperty('--nav-h', h + 'px');
+  }
+  window.addEventListener('resize', syncNavHeight);
+  window.addEventListener('orientationchange', syncNavHeight);
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(syncNavHeight); }
+
+  var cartFabEl = document.getElementById('cartFab');
+  var cartFabBadgeEl = document.getElementById('cartFabBadge');
+  var overlayEl = document.getElementById('overlay');
+  var drawerEl = document.getElementById('drawer');
+  var drawerListEl = document.getElementById('drawerList');
+  var drawerTotalEl = document.getElementById('drawerTotal');
+  var checkoutBtn = document.getElementById('checkoutBtn');
+  var fallbackNote = document.getElementById('fallbackNote');
+  var productSheet = document.getElementById('productSheet');
+  var productMedia = document.getElementById('productMedia');
+  var productName = document.getElementById('productName');
+  var productFarm = document.getElementById('productFarm');
+  var productDesc = document.getElementById('productDesc');
+  var tiersGrid = document.getElementById('tiersGrid');
+
+  function fmt(n){ return n.toLocaleString('fr-FR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' EUR'; }
+  function minPrice(p){ return Math.min.apply(null, p.tiers.map(function(t){ return t.price; })); }
+
+  // ---------- View switching ----------
+  var VIEWS = { home:viewHome, category:viewCategory, info:viewInfo, links:viewLinks, avis:viewAvis };
+  function showView(name){
+    Object.keys(VIEWS).forEach(function(k){ VIEWS[k].classList.toggle('hidden', k !== name); });
+    bottomnav.querySelectorAll('.navbtn').forEach(function(btn){
+      var tab = btn.getAttribute('data-view');
+      var match = (tab === name) || (tab === 'home' && name === 'category');
+      btn.classList.toggle('active', match);
+    });
+  }
+  bottomnav.querySelectorAll('.navbtn').forEach(function(btn){
+    btn.addEventListener('click', function(){ showView(btn.getAttribute('data-view')); });
+  });
+
+  // ---------- Rendu de l'identite de la boutique active (header / infos / liens / avis) ----------
+  function renderHeader(){
+    var b = activeBoutique;
+    if (!b) return;
+    document.getElementById('eyebrowText').textContent = b.eyebrow;
+    document.getElementById('shopNameText').textContent = b.shopName;
+    document.getElementById('taglineText').textContent = b.tagline;
+    document.title = b.shopName;
+  }
+
+  function renderInfo(){
+    var b = activeBoutique;
+    if (!b) return;
+    var el = document.getElementById('infoContainer');
+    el.innerHTML = b.infoParagraphs.map(function(p){
+      return '<p>' + p + '</p>';
+    }).join('');
+  }
+
+  function renderLinks(){
+    var b = activeBoutique;
+    if (!b) return;
+    var el = document.getElementById('linksContainer');
+    el.innerHTML = b.links.map(function(l){
+      var href = (l.url === 'whatsapp') ? ('https://wa.me/' + b.whatsappNumber) : l.url;
+      return '<a class="link-btn" href="'+href+'" target="_blank" rel="noopener">'+l.label+'</a>';
+    }).join('');
+  }
+
+  function renderReviews(){
+    var b = activeBoutique;
+    if (!b) return;
+    var el = document.getElementById('reviewsContainer');
+    el.innerHTML = b.reviews.map(function(r){
+      var stars = '';
+      for (var i = 0; i < 5; i++) stars += (i < r.stars) ? '\u2605' : '\u2606';
+      return '<div class="review"><div class="stars">'+stars+'</div>'+r.text+'</div>';
+    }).join('');
+  }
+
+  // ---------- Home banners ----------
+  function renderBanners(){
+    bannersEl.innerHTML = '';
+    CATS.forEach(function(c, i){
+      var el = document.createElement('div');
+      el.className = 'banner';
+      el.style.animationDelay = (i * 0.05) + 's';
+      var bgHtml = c.photo
+        ? '<img class="photo" src="'+c.photo+'" alt=""><div class="shade"></div>'
+        : '<div class="glow" style="background:'+c.glow+'"></div>';
+      var iconHtml = c.photo ? '' : '<span class="icon">'+c.icon+'</span>';
+      el.innerHTML =
+        bgHtml +
+        iconHtml +
+        '<div><div class="label">'+c.label+'</div><div class="sub">'+c.sub+'</div></div>';
+      el.addEventListener('click', function(){ openCategory(c.id); });
+      bannersEl.appendChild(el);
+    });
+  }
+
+  function openCategory(catId){
+    activeCat = catId;
+    var cat = CATS.filter(function(c){ return c.id === catId; })[0];
+    catNameEl.textContent = cat.label;
+    renderGrid();
+    showView('category');
+  }
+  backBtn.addEventListener('click', function(){ showView('home'); });
+
+  function mediaBg(cat){
+    var c = CAT_COLORS[cat] || '#9B3CFF';
+    return 'linear-gradient(150deg, ' + c + '33, ' + c + '11)';
+  }
+
+  function renderGrid(){
+    gridEl.innerHTML = '';
+    var list = PRODUCTS.filter(function(p){ return p.cat === activeCat; });
+    list.forEach(function(p, i){
+      var card = document.createElement('div');
+      card.className = 'card';
+      card.style.animationDelay = (i * 0.04) + 's';
+      var mediaHtml = p.image ? '<img src="'+p.image+'" alt="'+p.name+'">' : p.icon;
+      var badgeHtml = p.cbd ? '<span class="cbd-badge">'+p.cbd+' CBD</span>' : '';
+      card.innerHTML =
+        '<div class="card-media" style="background:'+mediaBg(p.cat)+'">' + badgeHtml + mediaHtml + '</div>' +
+        '<div class="card-body">' +
+          '<div class="card-name">'+p.name+'</div>' +
+          '<div class="card-farm">'+p.farm+'</div>' +
+          '<div><span class="price-from">Des</span><span class="price">'+fmt(minPrice(p))+'</span></div>' +
+        '</div>';
+      card.addEventListener('click', function(){ openProduct(p); });
+      gridEl.appendChild(card);
+    });
+  }
+
+  function openProduct(p){
+    var mediaHtml = p.image ? '<img src="'+p.image+'" alt="'+p.name+'">' : p.icon;
+    productMedia.style.background = mediaBg(p.cat);
+    productMedia.innerHTML = mediaHtml;
+    productName.textContent = p.name;
+    productFarm.textContent = p.farm + (p.cbd ? '  -  ' + p.cbd + ' CBD' : '');
+    productDesc.textContent = p.desc;
+
+    tiersGrid.innerHTML = '';
+    p.tiers.forEach(function(t){
+      var tile = document.createElement('div');
+      tile.className = 'tier-tile';
+      tile.innerHTML = '<span class="tier-label">'+t.label+'</span><span class="tier-price">'+fmt(t.price)+'</span><button>+</button>';
+      tile.querySelector('button').addEventListener('click', function(){ addToCart(p, t); });
+      tiersGrid.appendChild(tile);
+    });
+
+    overlayEl.classList.add('show');
+    productSheet.classList.add('show');
+  }
+  function closeProduct(){
+    productSheet.classList.remove('show');
+    if (!drawerEl.classList.contains('show')) overlayEl.classList.remove('show');
+  }
+
+  function addToCart(product, tier){
+    var key = product.id + '__' + tier.label;
+    if (!cart[key]) cart[key] = { product:product, tier:tier, qty:0 };
+    cart[key].qty += 1;
+    renderCart();
+  }
+  function removeLine(key){ delete cart[key]; renderCart(); }
+  function cartLines(){ return Object.keys(cart).map(function(k){ return {key:k, entry:cart[k]}; }); }
+  function cartTotal(){ return cartLines().reduce(function(s,l){ return s + l.entry.tier.price * l.entry.qty; }, 0); }
+  function cartCount(){ return cartLines().reduce(function(s,l){ return s + l.entry.qty; }, 0); }
+
+  function renderCart(){
+    var count = cartCount();
+    var total = cartTotal();
+    cartFabBadgeEl.textContent = count;
+    cartFabBadgeEl.classList.toggle('hidden', count === 0);
+    drawerTotalEl.textContent = fmt(total);
+
+    var lines = cartLines();
+    if (lines.length === 0) {
+      drawerListEl.innerHTML = '<div class="drawer-empty">Ton panier est vide pour l\u2019instant.</div>';
+      checkoutBtn.disabled = true;
+      checkoutBtn.textContent = 'Ajoute un article';
+    } else {
+      drawerListEl.innerHTML = lines.map(function(l){
+        var p = l.entry.product, t = l.entry.tier;
+        var iconHtml = p.image ? '<img src="'+p.image+'" alt="">' : p.icon;
+        return '<div class="line-item">' +
+          '<div class="li-icon" style="background:'+mediaBg(p.cat)+'">'+iconHtml+'</div>' +
+          '<div class="li-name">'+p.name+' <span class="li-tier">'+t.label+' x'+l.entry.qty+'</span></div>' +
+          '<div class="li-price">'+fmt(t.price * l.entry.qty)+'</div>' +
+          '<button class="li-remove" data-key="'+l.key+'">\u2715</button>' +
+        '</div>';
+      }).join('');
+      checkoutBtn.disabled = false;
+      checkoutBtn.textContent = 'Commander - ' + fmt(total);
+      drawerListEl.querySelectorAll('.li-remove').forEach(function(btn){
+        btn.addEventListener('click', function(){ removeLine(btn.getAttribute('data-key')); });
+      });
+    }
+
+    if (tg && tg.MainButton) {
+      if (count > 0) {
+        tg.MainButton.setText('Commander - ' + fmt(total));
+        tg.MainButton.show();
+        tg.MainButton.enable();
+      } else {
+        tg.MainButton.hide();
+      }
+    }
+  }
+
+  function openDrawer(){ overlayEl.classList.add('show'); drawerEl.classList.add('show'); }
+  function closeDrawer(){
+    drawerEl.classList.remove('show');
+    if (!productSheet.classList.contains('show')) overlayEl.classList.remove('show');
+  }
+  cartFabEl.addEventListener('click', openDrawer);
+  document.getElementById('closeDrawer').addEventListener('click', closeDrawer);
+  document.getElementById('closeProduct').addEventListener('click', closeProduct);
+  overlayEl.addEventListener('click', function(){ closeDrawer(); closeProduct(); });
+
+  function buildWhatsAppMessage(lines, total){
+    var out = ['Nouvelle commande - ' + (activeBoutique ? activeBoutique.shopName : ''), ''];
+    lines.forEach(function(l){
+      out.push(l.entry.qty + 'x ' + l.entry.product.name + ' (' + l.entry.tier.label + ') - ' + fmt(l.entry.tier.price * l.entry.qty));
+    });
+    out.push('');
+    out.push('Total : ' + fmt(total));
+    return out.join('\n');
+  }
+
+  function submitOrder(){
+    var lines = cartLines();
+    if (lines.length === 0) return;
+    var total = cartTotal();
+    var payload = {
+      type: 'order',
+      total: Number(total.toFixed(2)),
+      items: lines.map(function(l){
+        return { id:l.entry.product.id, name:l.entry.product.name, tier:l.entry.tier.label, qty:l.entry.qty, price:l.entry.tier.price };
+      })
+    };
+    if (inTelegram && tg && tg.sendData) {
+      try { tg.sendData(JSON.stringify(payload)); } catch(e){}
+    }
+    var text = encodeURIComponent(buildWhatsAppMessage(lines, total));
+    var waUrl = 'https://wa.me/' + WHATSAPP_NUMBER + '?text=' + text;
+    if (inTelegram && tg && tg.openLink) { tg.openLink(waUrl); } else { window.open(waUrl, '_blank'); }
+  }
+
+  checkoutBtn.addEventListener('click', submitOrder);
+  if (tg && tg.MainButton) {
+    tg.MainButton.onClick(submitOrder);
+    tg.MainButton.color = '#5CFF7A';
+    tg.MainButton.textColor = '#0B0710';
+  }
+
+  fallbackNote.style.display = 'block';
+
+  // ---------- Ecran "code postal" (gate) ----------
+  function buildGateMap(){
+    gateMapEl.innerHTML = '';
+    DEPARTMENTS.forEach(function(d){
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'dept-blob dept-' + d.code;
+      btn.textContent = d.name;
+      btn.addEventListener('click', function(){ handleDeptClick(d.code); });
+      gateMapEl.appendChild(btn);
+    });
+  }
+
+  function showGateError(html){
+    gateError.innerHTML = html;
+    gateError.classList.add('show');
+  }
+  function clearGateError(){
+    gateError.textContent = '';
+    gateError.classList.remove('show');
+  }
+
+  function notCoveredMessage(){
+    return 'Nous ne livrons pas encore dans ta zone. ' +
+      '<a class="gate-wa" href="https://wa.me/' + FALLBACK_WHATSAPP + '" target="_blank" rel="noopener">Contacte-nous sur WhatsApp</a> pour en savoir plus.';
+  }
+
+  function handleDeptClick(deptCode){
+    var matches = deptBoutiques(deptCode);
+    if (matches.length === 0) {
+      showGateError(notCoveredMessage());
+      return;
+    }
+    if (matches.length === 1) {
+      activateBoutique(matches[0].id);
+      return;
+    }
+    showGateError('Plusieurs boutiques desservent ce departement : saisis ton code postal complet ci-dessous pour etre redirige au bon endroit.');
+    gateInput.focus();
+  }
+
+  function handleGateSubmit(){
+    var val = (gateInput.value || '').trim();
+    if (!/^[0-9]{5}$/.test(val)) {
+      showGateError('Merci de saisir un code postal valide (5 chiffres).');
+      return;
+    }
+    var b = resolveBoutique(val);
+    if (!b) {
+      showGateError(notCoveredMessage());
+      return;
+    }
+    activateBoutique(b.id);
+  }
+  gateSubmitBtn.addEventListener('click', handleGateSubmit);
+  gateInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') handleGateSubmit();
+  });
+  gateInput.addEventListener('input', clearGateError);
+
+  function showGate(){ gateEl.classList.remove('hidden'); }
+  function hideGate(){ gateEl.classList.add('hidden'); }
+
+  gateResetBtn.addEventListener('click', function(){
+    try { localStorage.removeItem('mv_boutique'); } catch(e){}
+    activeBoutique = null;
+    gateInput.value = '';
+    clearGateError();
+    showView('home');
+    showGate();
+  });
+
+  function activateBoutique(id){
+    var b = BOUTIQUES.filter(function(x){ return x.id === id; })[0];
+    if (!b) return;
+    activeBoutique = b;
+    CATS = b.cats;
+    PRODUCTS = b.products;
+    CAT_COLORS = {};
+    CATS.forEach(function(c){ CAT_COLORS[c.id] = extractAccentColor(c.glow); });
+    WHATSAPP_NUMBER = b.whatsappNumber;
+    try { localStorage.setItem('mv_boutique', b.id); } catch(e){}
+    renderHeader();
+    renderInfo();
+    renderLinks();
+    renderReviews();
+    renderBanners();
+    showView('home');
+    hideGate();
+  }
+
+  buildGateMap();
+  renderCart();
+  syncNavHeight();
+
+  var savedId = null;
+  try { savedId = localStorage.getItem('mv_boutique'); } catch(e){}
+  if (savedId && BOUTIQUES.some(function(b){ return b.id === savedId; })) {
+    activateBoutique(savedId);
+  } else {
+    showGate();
+  }
+})();
+</script>
+</body>
+</html>
